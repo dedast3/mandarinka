@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Комплимент для тебя</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Caveat:wght@600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --sky: #3E9BD1;
+    --sky-light: #A9DDF7;
+    --sand: #EAD2A3;
+    --coral: #FF6F59;
+    --coral-deep: #E85847;
+    --navy: #1F2E45;
+    --cream: #FFF9F0;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    min-height: 100dvh;
+    font-family: 'Manrope', sans-serif;
+    color: var(--navy);
+  }
+
+  body{
+    min-height: 100dvh;
+    background: linear-gradient(180deg, var(--sky) 0%, var(--sky-light) 38%, var(--sand) 100%);
+    display:flex;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+
+  .scene{
+    width:100%;
+    max-width: 480px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top: max(32px, env(safe-area-inset-top));
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+
+  .polaroid{
+    position:relative;
+    background:#fff;
+    padding: 14px 14px 38px;
+    border-radius: 3px;
+    box-shadow: 0 20px 34px rgba(31,46,69,0.28);
+    transform: rotate(-4deg);
+    width: min(72%, 290px);
+  }
+
+  .tape{
+    position:absolute;
+    top:-12px;
+    left:50%;
+    width:76px;
+    height:28px;
+    background: rgba(255,111,89,0.55);
+    border: 1px solid rgba(255,111,89,0.65);
+    transform: translateX(-50%) rotate(-3deg);
+    box-shadow: 0 3px 6px rgba(31,46,69,0.15);
+  }
+
+  .polaroid-photo{
+    width:100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 2px;
+    display:block;
+  }
+
+  .polaroid-caption{
+    font-family:'Caveat', cursive;
+    font-size:1.35rem;
+    text-align:center;
+    margin: 10px 0 0;
+    color: var(--navy);
+  }
+
+  .intro{
+    text-align:center;
+    margin-top:30px;
+  }
+
+  .intro h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(1.55rem, 6vw, 2.05rem);
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+
+  .intro p{
+    margin: 8px 0 0;
+    font-size:0.95rem;
+    color: rgba(31,46,69,0.72);
+  }
+
+  .note{
+    position:relative;
+    background: var(--cream);
+    width: min(88%, 360px);
+    min-height: 118px;
+    margin-top: 26px;
+    padding: 30px 24px 22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    box-shadow: 0 12px 22px rgba(31,46,69,0.14);
+    clip-path: polygon(0% 7%, 5% 1%, 12% 6%, 20% 0%, 28% 6%, 36% 1%, 44% 6%, 52% 1%, 60% 6%, 68% 0%, 76% 6%, 84% 1%, 92% 6%, 100% 0%, 100% 100%, 0% 100%);
+  }
+
+  .note-text{
+    font-family:'Caveat', cursive;
+    font-size: clamp(1.35rem, 5.2vw, 1.65rem);
+    line-height:1.35;
+    margin:0;
+    transition: opacity .22s ease, transform .22s ease;
+  }
+
+  .heart-btn{
+    margin-top: 22px;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background: var(--coral);
+    color:#fff;
+    border:none;
+    padding: 16px 30px;
+    border-radius: 999px;
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size: 1rem;
+    box-shadow: 0 14px 26px rgba(232,88,71,0.38);
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+
+  .heart-btn:active{
+    transform: scale(0.96);
+    box-shadow: 0 8px 16px rgba(232,88,71,0.32);
+  }
+
+  .heart-btn:focus-visible{
+    outline: 3px solid var(--navy);
+    outline-offset: 3px;
+  }
+
+  .heart-icon{ font-size:1.25rem; line-height:1; }
+
+  .hearts-layer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:50;
+  }
+
+  .floating-heart{
+    position:absolute;
+    opacity:0;
+    animation: floatUp 1.6s ease-out forwards;
+  }
+
+  @keyframes floatUp{
+    0%{ opacity:0; transform: translateY(0) scale(0.6) rotate(0deg); }
+    18%{ opacity:1; }
+    100%{ opacity:0; transform: translateY(-170px) scale(1.15) rotate(var(--rot, 10deg)); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .note-text{ transition:none; }
+    .floating-heart{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="scene">
+    <div class="polaroid">
+      <div class="tape"></div>
+      <img class="polaroid-photo" src="photo.jpg" alt="Наше фото с пляжа">
+      <p class="polaroid-caption">тот самый пляжный день ☀️</p>
+    </div>
+
+    <header class="intro">
+      <h1>Комплимент для тебя</h1>
+      <p>Жми на сердце — получай новый, каждый раз другой</p>
+    </header>
+
+    <main class="note" id="note">
+      <p class="note-text" id="complimentText">Нажми на сердце, чтобы начать ✨</p>
+    </main>
+
+    <button class="heart-btn" id="heartBtn" type="button" aria-label="Получить комплимент">
+      <span class="heart-icon">♥</span>
+      <span>Комплимент</span>
+    </button>
+  </div>
+
+  <div class="hearts-layer" id="heartsLayer"></div>
+
+<script>
+  // Отредактируй этот список как хочешь — можно добавлять, убирать, менять местами
+  var compliments = [
+    "Ты — лучшее, что случилось со мной на этом пляже. Ну и мороженое тоже неплохое.",
+    "Рядом с тобой даже самый обычный вторник ощущается как отпуск.",
+    "Твоя улыбка держит форму лучше, чем вон те облака.",
+    "Если бы счастье продавали в бутылках, я бы всё равно выбрал тебя.",
+    "Ты умеешь превращать даже плохой день в неплохую историю.",
+    "С тобой я забываю проверять телефон. Поверь, это серьёзный комплимент.",
+    "Ты — единственная причина, по которой я вообще выхожу из дома.",
+    "Каждый раз, когда ты смеёшься, где-то в мире становится на один хороший день больше.",
+    "Ты настолько крутая, что солнце сегодня явно вышло специально ради тебя.",
+    "Я не эксперт по пляжам, но ты точно самая красивая деталь пейзажа.",
+    "С тобой я готов терпеть даже песок в кроссовках. Это максимум любви, на который я способен.",
+    "Ты как wifi без пароля — все хотят быть рядом, но достаёшься только мне.",
+    "Если бы на этом пляже был рейтинг девушек, ты бы обрушила сервер.",
+    "Ты настолько заряжаешь позитивом, что скоро тебя придётся ставить на зарядку вместо телефона.",
+    "Двадцать процентов моего мозга занято работой, остальные восемьдесят — тобой.",
+    "Ты единственный человек, ради которого я готов встать пораньше. Даже в отпуске.",
+    "Говорят, противоположности притягиваются. Ты — солнце, а я — тот, кто забыл крем от загара.",
+    "Будь я поисковиком, все мои запросы сводились бы к тебе.",
+    "Ты симпатичнее скидки 70% в любимом магазине. А это очень высокая планка.",
+    "Ты настолько хороша, что я готов делить с тобой даже последний кусок пиццы.",
+    "Ты как отпуск — все ждут, всем нужна, но повезло только мне.",
+    "Рядом с тобой время идёт быстрее, а настроение выше, чем облака за окном.",
+    "Ты точно была секретным ингредиентом, из-за которого это лето получилось таким удачным.",
+    "Если бы любовь измеряли в лайках, у тебя бы уже кончился интернет."
+  ];
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  var queue = shuffle(compliments);
+  var idx = 0;
+
+  function nextCompliment(){
+    if (idx >= queue.length) {
+      queue = shuffle(compliments);
+      idx = 0;
+    }
+    return queue[idx++];
+  }
+
+  var textEl = document.getElementById('complimentText');
+  var btn = document.getElementById('heartBtn');
+  var heartsLayer = document.getElementById('heartsLayer');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function spawnHearts(){
+    var symbols = ['♥', '✨', '☀️'];
+    for (var i = 0; i < 6; i++) {
+      var el = document.createElement('span');
+      el.className = 'floating-heart';
+      el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      el.style.left = (42 + Math.random() * 16) + '%';
+      el.style.bottom = '130px';
+      el.style.fontSize = (14 + Math.random() * 14) + 'px';
+      el.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
+      heartsLayer.appendChild(el);
+      (function(node){ setTimeout(function(){ node.remove(); }, 1700); })(el);
+    }
+  }
+
+  btn.addEventListener('click', function(){
+    try {
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      }
+    } catch (e) {}
+
+    var newText = nextCompliment();
+
+    if (reduceMotion) {
+      textEl.textContent = newText;
+    } else {
+      textEl.style.opacity = 0;
+      textEl.style.transform = 'translateY(6px) scale(0.97)';
+      setTimeout(function(){
+        textEl.textContent = newText;
+        textEl.style.opacity = 1;
+        textEl.style.transform = 'translateY(0) scale(1)';
+      }, 200);
+      spawnHearts();
+    }
+  });
+
+  try {
+    var tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#3E9BD1');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#A9DDF7');
+    }
+  } catch (e) {}
+</script>
+
+</body>
+</html>
